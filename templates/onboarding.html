@@ -276,7 +276,7 @@
             </div>
 
             <div class="d-flex justify-content-center mb-4">
-                <button id="submitOnboarding" class="btn btn-primary" onclick="submitOnboarding()" disabled>
+                <button id="submitOnboarding" class="btn btn-primary" onclick="submitOnboarding()">
                     Submit Onboarding
                 </button>
             </div>
@@ -444,23 +444,34 @@
 
         // Function to mark a task as complete
         function markAsComplete(type) {
+            const errorDiv = document.getElementById(`${type}Error`);
+            errorDiv.style.display = 'none';
+            
             fetch(`/mark-complete/${type}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 }
             })
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
             .then(data => {
                 if (data.success) {
                     updateStatusIcon(type, true);
                     updateProgress();
+                    checkAllStepsCompleted(); // Check if all steps are completed
                 } else {
-                    throw new Error(data.error || 'Upload failed');
+                    throw new Error(data.message || 'Failed to mark as complete');
                 }
             })
             .catch(error => {
                 console.error('Error marking task as complete:', error);
+                errorDiv.textContent = error.message;
+                errorDiv.style.display = 'block';
             });
         }
 
@@ -568,37 +579,49 @@
             let allCompleted = true;
             
             for (const step of steps) {
-                const stepElement = document.querySelector(`[data-step="${step}"]`);
-                if (!stepElement || !stepElement.classList.contains('completed')) {
+                const status = document.getElementById(`${step}Status`);
+                if (status && status.textContent !== 'Completed') {
                     allCompleted = false;
                     break;
                 }
             }
             
             // Enable/disable submit button based on completion status
-            document.getElementById('submitOnboarding').disabled = !allCompleted;
+            const submitBtn = document.getElementById('submitOnboarding');
+            submitBtn.disabled = !allCompleted;
             return allCompleted;
         }
 
         // Function to handle form submission
         async function submitOnboarding() {
+            const submitBtn = document.getElementById('submitOnboarding');
+            
             try {
-                if (!checkAllStepsCompleted()) {
-                    alert('Please complete all onboarding steps before submitting.');
-                    return;
-                }
-
-                const submitBtn = document.getElementById('submitOnboarding');
                 submitBtn.disabled = true;
                 submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Submitting...';
 
-                // Get the W9 and ID files from the previous upload steps
+                // Gather all step statuses
+                const steps = ['w9', 'id', 'contract', 'sign', 'license', 'login'];
+                const stepStatuses = {};
+                steps.forEach(step => {
+                    const status = document.getElementById(`${step}Status`);
+                    stepStatuses[`${step}_completed`] = status.textContent === 'Completed';
+                });
+
                 const response = await fetch('/submit-onboarding', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
-                    }
+                    },
+                    body: JSON.stringify({
+                        steps: stepStatuses,
+                        submitted_at: new Date().toISOString()
+                    })
                 });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
 
                 const result = await response.json();
                 
@@ -611,31 +634,8 @@
             } catch (error) {
                 alert('Error submitting onboarding: ' + error.message);
             } finally {
-                const submitBtn = document.getElementById('submitOnboarding');
                 submitBtn.disabled = false;
                 submitBtn.textContent = 'Submit Onboarding';
-            }
-        }
-
-        // Modify the existing markComplete function to check completion status
-        async function markComplete(step) {
-            try {
-                const response = await fetch(`/mark-complete/${step}`, {
-                    method: 'POST'
-                });
-                const data = await response.json();
-                
-                if (data.success) {
-                    const stepElement = document.querySelector(`[data-step="${step}"]`);
-                    if (stepElement) {
-                        stepElement.classList.add('completed');
-                        updateProgress();
-                        // Check if all steps are completed after marking one as complete
-                        checkAllStepsCompleted();
-                    }
-                }
-            } catch (error) {
-                console.error('Error marking step complete:', error);
             }
         }
 
