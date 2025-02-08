@@ -2172,6 +2172,125 @@ def list_dropbox_folders(path):
         print(f"Dropbox error: {str(e)}")
         return {"error": str(e)}
 
+@app.route('/onboarding-status')
+def get_onboarding_status():
+    if 'user_id' not in session:
+        return jsonify({'error': 'Not authenticated'}), 401
+        
+    try:
+        # Get user's onboarding status from database
+        status = onboarding_collection.find_one({'user_id': session['user_id']})
+        
+        if not status:
+            # Initialize status if it doesn't exist
+            default_status = {
+                'user_id': session['user_id'],
+                'w9_completed': False,
+                'id_completed': False,
+                'contract_completed': False,
+                'sign_completed': False,
+                'license_completed': False,
+                'login_completed': False,
+                'created_at': datetime.now(timezone.utc)
+            }
+            onboarding_collection.insert_one(default_status)
+            return jsonify(default_status)
+            
+        # Remove MongoDB _id before sending response
+        status.pop('_id', None)
+        return jsonify(status)
+        
+    except Exception as e:
+        print(f"Error fetching onboarding status: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/mark-complete/<step>', methods=['POST'])
+def mark_step_complete(step):
+    if 'user_id' not in session:
+        return jsonify({'error': 'Not authenticated'}), 401
+        
+    valid_steps = ['w9', 'id', 'contract', 'sign', 'license', 'login']
+    if step not in valid_steps:
+        return jsonify({'error': 'Invalid step'}), 400
+        
+    try:
+        # Update the step status in database
+        update_field = f'{step}_completed'
+        result = onboarding_collection.update_one(
+            {'user_id': session['user_id']},
+            {
+                '$set': {
+                    update_field: True,
+                    'updated_at': datetime.now(timezone.utc)
+                }
+            },
+            upsert=True
+        )
+        
+        return jsonify({
+            'success': True,
+            'message': f'{step} marked as complete'
+        })
+        
+    except Exception as e:
+        print(f"Error marking step complete: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/submit-onboarding', methods=['POST'])
+def submit_onboarding():
+    if 'user_id' not in session:
+        return jsonify({'error': 'Not authenticated'}), 401
+        
+    try:
+        # Get the submitted data
+        data = request.get_json()
+        
+        # Get user details
+        user = employees.find_one({'_id': ObjectId(session['user_id'])})
+        if not user:
+            return jsonify({'error': 'User not found'}), 404
+
+        # Create submission document
+        submission = {
+            'user_id': session['user_id'],
+            'user_name': f"{user.get('first_name', '')} {user.get('last_name', '')}",
+            'email': user.get('email', ''),
+            'steps': data.get('steps', {}),
+            'status': 'completed',
+            'submitted_at': datetime.now(timezone.utc),
+            'created_at': datetime.now(timezone.utc)
+        }
+        
+        # Insert into onboarding collection
+        result = onboarding_collection.insert_one(submission)
+        
+        if result.inserted_id:
+            # Update user's onboarding status
+            employees.update_one(
+                {'_id': ObjectId(session['user_id'])},
+                {
+                    '$set': {
+                        'onboarding_completed': True,
+                        'onboarding_completed_at': datetime.now(timezone.utc)
+                    }
+                }
+            )
+            
+            return jsonify({
+                'success': True,
+                'message': 'Onboarding completed successfully',
+                'submission_id': str(result.inserted_id)
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'message': 'Failed to save onboarding submission'
+            }), 500
+            
+    except Exception as e:
+        print(f"Error submitting onboarding: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+
 if __name__ == '__main__':
     print("Starting WCM Dashboard application...")
     insert_sample_employees()  # Create sample employees on startup
