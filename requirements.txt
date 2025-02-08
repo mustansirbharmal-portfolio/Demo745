@@ -9,3 +9,4 @@ pandas==2.1.1
 numpy==1.24.3
 Werkzeug==2.3.7
 certifi==2023.7.22
+gunicorn==21.2.0  
