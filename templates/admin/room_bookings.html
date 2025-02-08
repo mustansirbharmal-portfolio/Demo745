@@ -1,0 +1,31 @@
+{% extends "admin/base_layout.html" %}
+
+{% block title %}Room Bookings{% endblock %}
+
+{% block content %}
+<h1>Room Bookings</h1>
+<table>
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Purpose</th>
+            <th>Created At</th>
+            <th>Status</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for booking in room_bookings %}
+        <tr>
+            <td>{{ booking._id }}</td>
+            <td>{{ booking.purpose }}</td>
+            <td>{{ booking.created_at }}</td>
+            <td>{{ booking.status }}</td>
+            <td>
+                <!-- Add any actions you need here -->
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
