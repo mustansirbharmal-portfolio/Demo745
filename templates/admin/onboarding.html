@@ -1,0 +1,136 @@
+{% extends "admin/base_layout.html" %}
+
+{% block title %}Onboarding Status - Admin Dashboard{% endblock %}
+
+{% block extra_styles %}
+<style>
+    .onboarding-card {
+        background: white;
+        border-radius: 10px;
+        padding: 20px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        margin-bottom: 20px;
+    }
+    .status-badge {
+        padding: 5px 10px;
+        border-radius: 15px;
+        font-size: 0.8rem;
+        display: inline-block;
+        margin: 2px;
+    }
+    .status-badge.true {
+        background: #d4edda;
+        color: #155724;
+    }
+    .status-badge.false {
+        background: #f8d7da;
+        color: #721c24;
+    }
+    .info-row {
+        margin-bottom: 8px;
+    }
+    .info-label {
+        font-weight: 600;
+        color: #495057;
+    }
+    .timestamp {
+        font-size: 0.85rem;
+        color: #6c757d;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h2>Onboarding Status</h2>
+        </div>
+        <div class="col-md-4">
+            <div class="input-group">
+                <input type="text" class="form-control" id="searchInput" placeholder="Search entries...">
+                <button class="btn btn-outline-secondary" type="button">
+                    <i class="bi bi-search"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Onboarding List -->
+    <div class="onboarding-list">
+        {% if onboarding_entries %}
+            {% for entry in onboarding_entries %}
+            <div class="onboarding-card" data-entry-id="{{ entry._id }}">
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <h5 class="mb-0">Employee ID: {{ entry.user_id }}</h5>
+                            <div class="timestamp">
+                                Created: {{ entry.created_at }}<br>
+                                Updated: {{ entry.updated_at }}
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <div class="info-row">
+                                    <span class="info-label">W9 Completed:</span>
+                                    <span class="status-badge {{ entry.w9_completed|string|lower }}">
+                                        {{ entry.w9_completed|string|title }}
+                                    </span>
+                                </div>
+                                <div class="info-row">
+                                    <span class="info-label">ID Completed:</span>
+                                    <span class="status-badge {{ entry.id_completed|string|lower }}">
+                                        {{ entry.id_completed|string|title }}
+                                    </span>
+                                </div>
+                                <div class="info-row">
+                                    <span class="info-label">Contract Completed:</span>
+                                    <span class="status-badge {{ entry.contract_completed|string|lower }}">
+                                        {{ entry.contract_completed|string|title }}
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="info-row">
+                                    <span class="info-label">Sign Completed:</span>
+                                    <span class="status-badge {{ entry.sign_completed|string|lower }}">
+                                        {{ entry.sign_completed|string|title }}
+                                    </span>
+                                </div>
+                                <div class="info-row">
+                                    <span class="info-label">License Completed:</span>
+                                    <span class="status-badge {{ entry.license_completed|string|lower }}">
+                                        {{ entry.license_completed|string|title }}
+                                    </span>
+                                </div>
+                                <div class="info-row">
+                                    <span class="info-label">Login Completed:</span>
+                                    <span class="status-badge {{ entry.login_completed|string|lower }}">
+                                        {{ entry.login_completed|string|title }}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <p>No onboarding entries found</p>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+// Search functionality
+document.getElementById('searchInput').addEventListener('input', function(e) {
+    const searchTerm = e.target.value.toLowerCase();
+    document.querySelectorAll('.onboarding-card').forEach(card => {
+        const text = card.textContent.toLowerCase();
+        card.style.display = text.includes(searchTerm) ? '' : 'none';
+    });
+});
+</script>
+{% endblock %}
