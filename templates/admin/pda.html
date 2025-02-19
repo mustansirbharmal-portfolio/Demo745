@@ -58,7 +58,11 @@
 <div class="submission-list">
     {% if submissions %}
         {% for submission in submissions %}
+<<<<<<< HEAD
         <div class="submission-card">
+=======
+        <div class="submission-card" data-submission-id="{{ submission._id }}">
+>>>>>>> master
             <div class="row">
                 <div class="col-md-6">
                     <h5>{{ submission.user_name }}</h5>
@@ -95,12 +99,20 @@
                         </span>
                     </div>
                     {% if submission.get('status', 'pending')|lower == 'pending' %}
+<<<<<<< HEAD
+=======
+                    <div class="action-buttons">
+>>>>>>> master
                     <button class="btn btn-success btn-sm me-2" onclick="updateStatus('{{ submission._id }}', 'accepted')">
                         <i class="bi bi-check-circle"></i> Accept
                     </button>
                     <button class="btn btn-danger btn-sm" onclick="updateStatus('{{ submission._id }}', 'declined')">
                         <i class="bi bi-x-circle"></i> Decline
                     </button>
+<<<<<<< HEAD
+=======
+                    </div>
+>>>>>>> master
                     {% endif %}
                 </div>
                 <div class="col-md-2 text-end">
@@ -135,6 +147,7 @@
 
 {% block extra_scripts %}
 <script>
+<<<<<<< HEAD
     function updateStatus(submissionId, status) {
         if (confirm(`Are you sure you want to ${status} this submission?`)) {
             fetch(`/admin/pda/${submissionId}/status`, {
@@ -220,5 +233,193 @@
             card.style.display = text.includes(searchTerm) ? 'block' : 'none';
         });
     });
+=======
+function showNotification(message, type = 'success') {
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `alert alert-${type} alert-dismissible fade show position-fixed top-0 end-0 m-3`;
+    alertDiv.role = 'alert';
+    alertDiv.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    `;
+    document.body.appendChild(alertDiv);
+    setTimeout(() => alertDiv.remove(), 5000);
+}
+
+function updateStatus(submissionId, status) {
+    if (!confirm(`Are you sure you want to ${status} this PDA submission?`)) {
+        return;
+    }
+
+    const submissionCard = document.querySelector(`[data-submission-id="${submissionId}"]`);
+    if (!submissionCard) {
+        showNotification('Error: Submission card not found', 'danger');
+        return;
+    }
+
+    // Disable buttons while processing
+    const buttons = submissionCard.querySelectorAll('button');
+    buttons.forEach(button => button.disabled = true);
+
+    fetch(`/admin/pda/${submissionId}/status`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: JSON.stringify({ status: status })
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.error) {
+            throw new Error(data.error);
+        }
+        
+        // Update the UI
+        const statusBadge = submissionCard.querySelector('.status-badge');
+        const actionButtons = submissionCard.querySelector('.action-buttons');
+        
+        // Update status badge
+        if (statusBadge) {
+            statusBadge.className = `status-badge ${status}`;
+            statusBadge.textContent = status.charAt(0).toUpperCase() + status.slice(1);
+        }
+        
+        // Hide action buttons after status update
+        if (actionButtons) {
+            actionButtons.style.display = 'none';
+        }
+        
+        // Show success notification
+        showNotification(`PDA submission ${status} successfully`);
+        
+        // Update pending tasks count
+        updatePendingTasksCount();
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        // Re-enable buttons
+        buttons.forEach(button => button.disabled = false);
+        showNotification(error.message || 'An error occurred while updating the status', 'danger');
+    });
+}
+
+function updatePendingTasksCount() {
+    fetch('/admin/pending-tasks/count')
+        .then(response => response.json())
+        .then(data => {
+            const countElement = document.getElementById('pendingTasksCount');
+            if (countElement && data.count !== undefined) {
+                countElement.textContent = data.count;
+            }
+        })
+        .catch(error => console.error('Error updating pending tasks count:', error));
+}
+
+function viewDetails(submissionId) {
+    const modal = new bootstrap.Modal(document.getElementById('detailsModal'));
+    const modalContent = document.getElementById('modalContent');
+    
+    // Show loading state
+    modalContent.innerHTML = '<div class="text-center"><div class="spinner-border" role="status"></div></div>';
+    modal.show();
+
+    fetch(`/admin/pda/${submissionId}`)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.error) {
+                throw new Error(data.error);
+            }
+
+            const descriptiveNames = {
+                borrowerName: "Borrower Name",
+                completeDrive: "Complete Drive",
+                escrowCompanyName: "Escrow Company Name",
+                escrowEmail: "Escrow Email",
+                escrowFileNumber: "Escrow File Number",
+                escrowPhone: "Escrow Phone",
+                lenderName: "Lender Name",
+                loanOfficer: "Loan Officer",
+                payeeName: "Payee Name",
+                payoutAmount: "Payout Amount",
+                processorEmail: "Processor Email",
+                processorName: "Processor Name",
+                processorPhone: "Processor Phone",
+                titleCompanyName: "Title Company Name",
+                titleEmail: "Title Email",
+                titleFileNumber: "Title File Number",
+                titlePhone: "Title Phone",
+                totalPayout: "Total Payout"
+            };
+            
+            let answersTable = '<table class="table table-bordered"><thead><tr><th>Field</th><th>Value</th></tr></thead><tbody>';
+            
+            if (data.answers) {
+                for (const [key, value] of Object.entries(data.answers)) {
+                    const descriptiveName = descriptiveNames[key] || key;
+                    answersTable += `<tr><td>${descriptiveName}</td><td>${value || ''}</td></tr>`;
+                }
+            }
+            
+            answersTable += '</tbody></table>';
+            
+            modalContent.innerHTML = `
+                <div class="container-fluid">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <strong>Name:</strong> ${data.user_name || 'N/A'}
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Email:</strong> ${data.email || 'N/A'}
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-12">
+                            <strong>Status:</strong> 
+                            <span class="badge bg-${data.status === 'accepted' ? 'success' : 
+                                                   data.status === 'declined' ? 'danger' : 
+                                                   'warning'}">
+                                ${data.status ? data.status.charAt(0).toUpperCase() + data.status.slice(1) : 'Pending'}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-12">
+                            <strong>Submission Details:</strong>
+                            ${answersTable}
+                        </div>
+                    </div>
+                </div>
+            `;
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            modalContent.innerHTML = `
+                <div class="alert alert-danger">
+                    Error loading submission details: ${error.message || 'Unknown error'}
+                </div>
+            `;
+        });
+}
+
+// Search functionality
+document.getElementById('searchInput').addEventListener('input', function(e) {
+    const searchTerm = e.target.value.toLowerCase();
+    document.querySelectorAll('.submission-card').forEach(card => {
+        const text = card.textContent.toLowerCase();
+        card.style.display = text.includes(searchTerm) ? 'block' : 'none';
+    });
+});
+>>>>>>> master
 </script>
 {% endblock %}

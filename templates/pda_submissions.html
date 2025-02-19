@@ -190,6 +190,7 @@
                         </div>
 
                         <!-- Status Information -->
+<<<<<<< HEAD
                 <div class="info-section">
                     <h6>Status Information</h6>
                     <div class="info-item">
@@ -216,6 +217,34 @@
                 </div>
                     
             </div>
+=======
+                        <div class="info-section">
+                            <h6>Status Information</h6>
+                            <div class="info-item">
+                                <span class="info-label">Status:</span>
+                                <span class="info-value">
+                                    {% if submission.status %}
+                                        <span class="badge {% if submission.status == 'accepted' %}bg-success
+                                                          {% elif submission.status == 'declined' %}bg-danger
+                                                          {% else %}bg-warning{% endif %}">
+                                            {{ submission.status|title }}
+                                        </span>
+                                    {% else %}
+                                        <span class="badge bg-warning">Pending</span>
+                                    {% endif %}
+                                </span>
+                            </div>
+                            {% if submission.updated_at %}
+                            <div class="info-item">
+                                <span class="info-label">Last Updated:</span>
+                                <span class="info-value">{{ submission.updated_at.strftime('%Y-%m-%d %H:%M:%S') }}</span>
+                            </div>
+                            {% endif %}
+                        </div>
+
+                    </div>
+                </div>
+>>>>>>> master
             {% endfor %}
         {% else %}
             <div class="alert alert-info">No PDA submissions found.</div>

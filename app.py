@@ -3,8 +3,16 @@ from pymongo import MongoClient
 import bcrypt
 import random
 import string
+<<<<<<< HEAD
 from bson.binary import Binary
 import os
+=======
+from bson import ObjectId
+from bson.errors import InvalidId
+from datetime import datetime, timezone
+import os
+import sys
+>>>>>>> master
 from dotenv import load_dotenv
 from werkzeug.utils import secure_filename
 from datetime import datetime, timezone, timedelta
@@ -28,11 +36,30 @@ from bson.errors import InvalidId
 import pandas as pd
 import numpy as np
 
+<<<<<<< HEAD
+=======
+from bson import ObjectId
+from datetime import datetime
+import json
+
+class CustomJSONEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, ObjectId):
+            return str(obj)
+        if isinstance(obj, datetime):
+            return obj.isoformat()
+        return super().default(obj)
+
+>>>>>>> master
 # Load environment variables from .env file
 load_dotenv()
 
 app = Flask(__name__)
 app.secret_key = ''.join(random.choices(string.ascii_letters + string.digits, k=32))
+<<<<<<< HEAD
+=======
+app.json_encoder = CustomJSONEncoder
+>>>>>>> master
 
 # Get configuration from environment variables
 MONGO_URI = os.getenv('MONGO_URI')
@@ -44,9 +71,27 @@ CALENDLY_CLIENT_SECRET = os.getenv('CALENDLY_CLIENT_SECRET')
 CALENDLY_WEBHOOK_SIGNING_KEY = os.getenv('CALENDLY_WEBHOOK_SIGNING_KEY')
 
 # Configure MongoDB client
+<<<<<<< HEAD
 client = MongoClient(MONGO_URI)
 
 # client = MongoClient('mongodb://localhost:27017/')
+=======
+MONGO_URI = 'mongodb+srv://wcm:wcm707@wcmdashboard.1unkx20.mongodb.net/?retryWrites=true&w=majority&appName=wcmdashboard'
+
+try:
+    # Create MongoDB client with the connection string
+    client = MongoClient(MONGO_URI, serverSelectionTimeoutMS=5000)
+    
+    # Test the connection
+    client.admin.command('ping')
+    print("Successfully connected to MongoDB Atlas")
+    
+except Exception as e:
+    print(f"Error connecting to MongoDB: {str(e)}")
+    sys.exit(1)
+
+# Initialize database and collections
+>>>>>>> master
 db = client['wcm_dashboard']
 employees = db['employees']
 onboarding_collection = db['onboarding']  # Renamed to avoid conflict
@@ -60,6 +105,11 @@ closing_requests = db['closing_requests']  # New collection for closing requests
 dropbox_files = db['dropbox_files']  # New collection for dropbox files
 form_statuses = db['form_statuses']  # New collection for form statuses
 documents_collection = db['documents']  # Add documents collection
+<<<<<<< HEAD
+=======
+cda = db['cda']  # New collection for CDA submissions
+login_requests = db['login_requests']  # New collection for login requests
+>>>>>>> master
 
 UPLOAD_FOLDER = 'uploads'
 ALLOWED_EXTENSIONS = {'pdf', 'png', 'jpg', 'jpeg', 'doc', 'docx', 'xls', 'xlsx', 'txt'}
@@ -100,6 +150,7 @@ def login_required(f):
 def insert_sample_employees():
     """Insert or update required employees and admin users in the database"""
     
+<<<<<<< HEAD
     # Check if employees already exist
     if employees.count_documents({}) > 0 and wcm.count_documents({}) > 0:
         print("Employees and admin users already exist. Updating passwords...")
@@ -175,11 +226,15 @@ def insert_sample_employees():
         return
     
     print("No existing employees found. Creating new employees and admin users...")
+=======
+    print("Creating new employees and admin users...")
+>>>>>>> master
     
     # Clear existing employees and admin users
     employees.delete_many({})
     wcm.delete_many({})
     
+<<<<<<< HEAD
     # Insert employees
     employee_list = [
         {
@@ -196,42 +251,103 @@ def insert_sample_employees():
             'name': 'Daniel Contreras',
             'email': 'daniel@wcmlending.net',
             'role': 'user',
+=======
+    # Create employee records
+    employee_list = [
+        {
+            'email': 'sarah@wcmlending.net',
+            'password': bcrypt.hashpw('707311sarah'.encode('utf-8'), bcrypt.gensalt()),
+            'role': 'user',
+            'name': 'Sarah Porter',
+            'first_name': 'Sarah',
+            'last_name': 'Porter',
+            'created_at': datetime.now(timezone.utc)
+        },
+        {
+            'email': 'daniel@wcmlending.net',
+            'password': bcrypt.hashpw('707311daniel'.encode('utf-8'), bcrypt.gensalt()),
+            'role': 'user',
+            'name': 'Daniel Contreras',
+            'first_name': 'Daniel',
+            'last_name': 'Contreras',
+            'created_at': datetime.now(timezone.utc)
+        },
+        {
+            'email': 'compliance@wcmlending.net',
+            'password': bcrypt.hashpw('707311compliance'.encode('utf-8'), bcrypt.gensalt()),
+            'role': 'user',
+            'name': 'WCM Compliance',
+            'first_name': 'WCM',
+            'last_name': 'Compliance',
+>>>>>>> master
             'created_at': datetime.now(timezone.utc)
         }
     ]
     
+<<<<<<< HEAD
     # Insert admin users
     admin_list = [
         {
             'name': 'Sarah Porter',
             'email': 'sarah@wcmlending.net',
             'role': 'admin',
+=======
+    # Create admin records
+    admin_list = [
+        {
+            'email': 'sarah@wcmlending.net',
+            'password': bcrypt.hashpw('sarahadmin707311'.encode('utf-8'), bcrypt.gensalt()),
+            'role': 'admin',
+            'name': 'Sarah Porter',
+>>>>>>> master
             'is_admin': True,
             'created_at': datetime.now(timezone.utc)
         },
         {
+<<<<<<< HEAD
             'name': 'Daniel Contreras',
             'email': 'daniel@wcmlending.net',
             'role': 'admin',
+=======
+            'email': 'daniel@wcmlending.net',
+            'password': bcrypt.hashpw('danieladmin707311'.encode('utf-8'), bcrypt.gensalt()),
+            'role': 'admin',
+            'name': 'Daniel Contreras',
+>>>>>>> master
             'is_admin': True,
             'created_at': datetime.now(timezone.utc)
         },
         {
+<<<<<<< HEAD
             'name': 'WCM Compliance',
             'email': 'compliance@wcmlending.net',
             'role': 'admin',
+=======
+            'email': 'compliance@wcmlending.net',
+            'password': bcrypt.hashpw('wcmcompliance707'.encode('utf-8'), bcrypt.gensalt()),
+            'role': 'admin',
+            'name': 'WCM Compliance',
+>>>>>>> master
             'is_admin': True,
             'created_at': datetime.now(timezone.utc)
         },
         {
+<<<<<<< HEAD
             'name': 'WCM Admin',
             'email': 'admin@wcmlending.net',
             'role': 'admin',
+=======
+            'email': 'admin@wcmlending.net',
+            'password': bcrypt.hashpw('wcmadmin707'.encode('utf-8'), bcrypt.gensalt()),
+            'role': 'admin',
+            'name': 'WCM Admin',
+>>>>>>> master
             'is_admin': True,
             'created_at': datetime.now(timezone.utc)
         }
     ]
     
+<<<<<<< HEAD
     # Set passwords and insert employees
     for employee in employee_list:
         if employee['email'] == 'sarah@wcmlending.net':
@@ -254,6 +370,13 @@ def insert_sample_employees():
             password = 'wcmadmin707'
         hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
         admin['password'] = hashed_password
+=======
+    # Insert all records
+    for employee in employee_list:
+        employees.insert_one(employee)
+    
+    for admin in admin_list:
+>>>>>>> master
         wcm.insert_one(admin)
     
     print("Employees and admin users added successfully")
@@ -262,6 +385,7 @@ def insert_sample_employees():
 def index():
     if 'user_id' in session:
         return redirect(url_for('home'))
+<<<<<<< HEAD
     return render_template('login.html')
 
 @app.route('/home')
@@ -269,6 +393,16 @@ def home():
     if 'user_id' not in session:
         return redirect(url_for('login'))
     return render_template('home.html')
+=======
+    return redirect(url_for('login'))
+
+@app.route('/home')
+@login_required
+def home():
+    user_id = session.get('user_id')
+    user = employees.find_one({'_id': ObjectId(user_id)})
+    return render_template('home.html', user=user)
+>>>>>>> master
 
 @app.route('/onboarding')
 def onboarding():
@@ -800,11 +934,19 @@ DROPBOX_APP_KEY = 'mk8crgaubpcp4gp'
 DROPBOX_APP_SECRET = '69ucrxiqpjpniri'
 DROPBOX_REFRESH_TOKEN = 'ovsWQSs-_8oAAAAAAAAAAUbJceToE4mXBzaoks_GAtj7bo6GnKkPVQeNbeBsyEy9'
 
+<<<<<<< HEAD
 # Initialize global dbx variable at module level
 dbx = None
 
 def init_dropbox_client():
     """Initialize the global Dropbox client"""
+=======
+# Initialize Dropbox client
+dbx = None
+
+def init_dropbox_client():
+    """Initialize the Dropbox client"""
+>>>>>>> master
     global dbx
     try:
         dbx = dropbox.Dropbox(
@@ -812,12 +954,17 @@ def init_dropbox_client():
             app_key=DROPBOX_APP_KEY,
             app_secret=DROPBOX_APP_SECRET
         )
+<<<<<<< HEAD
+=======
+        print("Dropbox client initialized successfully")
+>>>>>>> master
         return True
     except Exception as e:
         print(f"Error initializing Dropbox client: {e}")
         return False
 
 # Initialize Dropbox client when app starts
+<<<<<<< HEAD
 init_dropbox_client()
 
 def get_dropbox_client():
@@ -863,17 +1010,99 @@ def upload_document_api():
         filename = f"{timestamp}_{secure_filename(file.filename)}"
         
         # Construct Dropbox path with correct structure
+=======
+if init_dropbox_client():
+    print("Dropbox client initialized on startup")
+else:
+    print("Failed to initialize Dropbox client on startup")
+
+@app.after_request
+def add_security_headers(response):
+    if response.mimetype == "text/html":
+        response.headers['Content-Security-Policy'] = (
+            "default-src 'self' https://cdn.jsdelivr.net https://code.jquery.com; "
+            "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://code.jquery.com; "
+            "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; "
+            "img-src 'self' data:; "
+            "font-src 'self' https://cdn.jsdelivr.net; "
+            "connect-src 'self'"
+        )
+    return response
+
+@app.route('/api/upload_document_api', methods=['POST'])
+@login_required
+def upload_document_api():
+    try:
+        global dbx
+        
+        # Ensure Dropbox client is initialized
+        if dbx is None:
+            print("Dropbox client not initialized, attempting to initialize...")
+            if not init_dropbox_client():
+                print("Failed to initialize Dropbox client")
+                return jsonify({
+                    'success': False,
+                    'error': 'Failed to initialize Dropbox client'
+                }), 500
+            print("Dropbox client initialized successfully")
+            
+        if 'file' not in request.files:
+            return jsonify({
+                'success': False,
+                'error': 'No file uploaded'
+            }), 400
+            
+        file = request.files['file']
+        document_type = request.form.get('document_type', '')
+        
+        if not file or file.filename == '':
+            return jsonify({
+                'success': False,
+                'error': 'No file selected'
+            }), 400
+
+        # Get employee name from session
+        user_id = session.get('user_id')
+        if not user_id:
+            return jsonify({
+                'success': False,
+                'error': 'User not authenticated'
+            }), 401
+
+        employee = employees.find_one({'_id': ObjectId(user_id)})
+        if not employee:
+            return jsonify({
+                'success': False,
+                'error': 'Employee not found'
+            }), 404
+
+        # Sanitize employee name and filename
+        employee_name = secure_filename(employee.get('name', 'unnamed'))
+        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+        filename = f"{timestamp}_{secure_filename(file.filename)}"
+        
+        print(f"Uploading file: {filename}")
+        print(f"Document type: {document_type}")
+        print(f"Employee name: {employee_name}")
+        
+        # Construct Dropbox path
+>>>>>>> master
         if document_type.lower() in ['w9', 'id']:
             dropbox_path = f"/WCM Dashboard/Onboarding/{employee_name}/{document_type}/{filename}"
         else:
             dropbox_path = f"/WCM Dashboard/Closing Requests/{employee_name}/{document_type}/{filename}"
         
         dropbox_path = dropbox_path.replace('//', '/')
+<<<<<<< HEAD
+=======
+        print(f"Dropbox path: {dropbox_path}")
+>>>>>>> master
         
         try:
             # Create necessary folders
             folder_path = '/'.join(dropbox_path.split('/')[:-1])
             try:
+<<<<<<< HEAD
                 dbx.files_create_folder_v2(folder_path)
             except dropbox.exceptions.ApiError as e:
                 if not (isinstance(e.error, dropbox.files.CreateFolderError) and 
@@ -882,6 +1111,23 @@ def upload_document_api():
 
             # Upload file
             file_content = file.read()
+=======
+                print(f"Creating folder: {folder_path}")
+                dbx.files_create_folder_v2(folder_path)
+                print("Folder created successfully")
+            except dropbox.exceptions.ApiError as e:
+                if not (isinstance(e.error, dropbox.files.CreateFolderError) and 
+                       e.error.is_path() and e.error.get_path().is_conflict()):
+                    print(f"Error creating folder: {str(e)}")
+                    # Continue if folder already exists
+                else:
+                    print("Folder already exists")
+
+            # Read and upload file
+            print("Reading file content...")
+            file_content = file.read()
+            print("Uploading to Dropbox...")
+>>>>>>> master
             upload_result = dbx.files_upload(
                 file_content,
                 dropbox_path,
@@ -890,10 +1136,26 @@ def upload_document_api():
 
             print(f"File uploaded successfully to: {upload_result.path_display}")
 
+<<<<<<< HEAD
+=======
+            # Store upload record in MongoDB
+            upload_record = {
+                'user_id': ObjectId(user_id),
+                'document_type': document_type,
+                'filename': filename,
+                'dropbox_path': upload_result.path_display,
+                'uploaded_at': datetime.now(timezone.utc)
+            }
+            print("Storing record in MongoDB...")
+            request_closing.insert_one(upload_record)
+            print("Record stored successfully")
+
+>>>>>>> master
             return jsonify({
                 'success': True,
                 'message': 'File uploaded successfully',
                 'filename': filename,
+<<<<<<< HEAD
                 'path': dropbox_path
             })
 
@@ -953,6 +1215,36 @@ def send_processor_notification(processor_email, cda_data):
         print(f"Body: {body}")
     except Exception as e:
         print(f"Error sending email: {str(e)}")
+=======
+                'path': upload_result.path_display
+            })
+
+        except dropbox.exceptions.AuthError:
+            print("Dropbox authentication failed")
+            return jsonify({
+                'success': False,
+                'error': 'Dropbox authentication failed'
+            }), 401
+        except dropbox.exceptions.ApiError as e:
+            print(f"Dropbox API error: {str(e)}")
+            return jsonify({
+                'success': False,
+                'error': f'Dropbox API error: {str(e)}'
+            }), 500
+        except Exception as e:
+            print(f"Upload error: {str(e)}")
+            return jsonify({
+                'success': False,
+                'error': f'Upload failed: {str(e)}'
+            }), 500
+
+    except Exception as e:
+        print(f"General error in upload_document_api: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': f'An unexpected error occurred: {str(e)}'
+        }), 500
+>>>>>>> master
 
 @app.route('/api/submit_closing_documents', methods=['POST'])
 def submit_closing_documents():
@@ -1388,6 +1680,27 @@ def store_google_form_data(sheet_url, form_type):
         print(f"Error storing Google Form data for {form_type}: {str(e)}")
 
 def calculate_pending_tasks():
+<<<<<<< HEAD
+=======
+    def convert_mongo_doc(doc):
+        if not isinstance(doc, dict):
+            return doc
+        
+        converted = {}
+        for key, value in doc.items():
+            if isinstance(value, ObjectId):
+                converted[key] = str(value)
+            elif isinstance(value, datetime):
+                converted[key] = value.isoformat()
+            elif isinstance(value, dict):
+                converted[key] = convert_mongo_doc(value)
+            elif isinstance(value, list):
+                converted[key] = [convert_mongo_doc(item) for item in value]
+            else:
+                converted[key] = value
+        return converted
+
+>>>>>>> master
     result = [
         (list(tickets.find({'status': 'open'})), 'tickets'),
         (list(pda_submissions.find({'status': 'pending'})), 'pda'),
@@ -1400,12 +1713,22 @@ def calculate_pending_tasks():
         (list(db.login_requests.find({'status': 'pending'})), 'login_requests')
     ]
 
+<<<<<<< HEAD
     # Convert ObjectId to string for JSON serialization
     for task_list, task_type in result:
         for item in task_list:
             item['_id'] = str(item['_id'])
 
     return result
+=======
+    # Convert all MongoDB documents to JSON-serializable format
+    serializable_result = []
+    for task_list, category in result:
+        serialized_tasks = [convert_mongo_doc(task) for task in task_list]
+        serializable_result.append((serialized_tasks, category))
+    
+    return serializable_result
+>>>>>>> master
 
 @app.route('/admin')
 @app.route('/admin/dashboard')
@@ -1502,9 +1825,15 @@ def admin_pda():
     for submission in submissions:
         submission['_id'] = str(submission['_id'])
         if 'created_at' not in submission:
+<<<<<<< HEAD
             submission['created_at'] = datetime.now(sc_tz)
         elif not isinstance(submission['created_at'], datetime):
             submission['created_at'] = datetime.now(sc_tz)
+=======
+            submission['created_at'] = datetime.now(timezone.utc)
+        elif not isinstance(submission['created_at'], datetime):
+            submission['created_at'] = datetime.now(timezone.utc)
+>>>>>>> master
             
         if 'status' not in submission:
             submission['status'] = 'pending'
@@ -1544,6 +1873,7 @@ def view_pda_submission(submission_id):
         return jsonify({'error': 'Internal server error'}), 500
 
 @app.route('/admin/pda/<submission_id>/status', methods=['POST'])
+<<<<<<< HEAD
 def update_pda_status(submission_id):
     if 'user_id' not in session or not session.get('is_admin'):
         return jsonify({'error': 'Unauthorized'}), 401
@@ -1572,6 +1902,56 @@ def update_pda_status(submission_id):
         
     except InvalidId:
         return jsonify({'error': 'Invalid submission ID'}), 400
+=======
+@login_required
+def update_pda_status(submission_id):
+    if not session.get('is_admin'):
+        return jsonify({'error': 'Unauthorized'}), 401
+
+    try:
+        data = request.get_json()
+        if not data or 'status' not in data:
+            return jsonify({'error': 'Status not provided'}), 400
+
+        new_status = data['status']
+        if new_status not in ['accepted', 'declined']:
+            return jsonify({'error': 'Invalid status'}), 400
+
+        # Convert string ID to ObjectId
+        try:
+            submission_id = ObjectId(submission_id)
+        except InvalidId:
+            return jsonify({'error': 'Invalid submission ID'}), 400
+        
+        # Update the submission status in pda_submissions collection
+        result = pda_submissions.update_one(
+            {'_id': submission_id},
+            {'$set': {
+                'status': new_status,
+                'updated_at': datetime.utcnow(),
+                'updated_by': session.get('user_id')
+            }}
+        )
+
+        if result.modified_count == 0:
+            return jsonify({'error': 'Submission not found or status not changed'}), 404
+
+        # Get the updated submission
+        submission = pda_submissions.find_one({'_id': submission_id})
+        if not submission:
+            return jsonify({'error': 'Submission not found'}), 404
+
+        # Convert ObjectId to string for JSON response
+        submission['_id'] = str(submission['_id'])
+        if 'updated_by' in submission:
+            submission['updated_by'] = str(submission['updated_by'])
+        
+        return jsonify({
+            'message': f'PDA submission {new_status} successfully',
+            'submission': submission
+        })
+
+>>>>>>> master
     except Exception as e:
         print(f"Error updating PDA status: {str(e)}")
         return jsonify({'error': 'Internal server error'}), 500
@@ -1586,7 +1966,11 @@ def accept_pda_submission(submission_id):
             {'_id': ObjectId(submission_id)},
             {'$set': {
                 'status': 'accepted',
+<<<<<<< HEAD
                 'updated_at': datetime.now(sc_tz),
+=======
+                'updated_at': datetime.now(timezone.utc),
+>>>>>>> master
                 'updated_by': session['user_id']
             }}
         )
@@ -1611,7 +1995,11 @@ def decline_pda_submission(submission_id):
             {'_id': ObjectId(submission_id)},
             {'$set': {
                 'status': 'declined',
+<<<<<<< HEAD
                 'updated_at': datetime.now(sc_tz),
+=======
+                'updated_at': datetime.now(timezone.utc),
+>>>>>>> master
                 'updated_by': session['user_id']
             }}
         )
@@ -1637,6 +2025,7 @@ def admin_tickets():
     all_tickets = list(tickets.find().sort('created_at', -1))
     for ticket in all_tickets:
         if 'created_at' not in ticket:
+<<<<<<< HEAD
             ticket['created_at'] = datetime.now(sc_tz)
         elif not isinstance(ticket['created_at'], datetime):
             ticket['created_at'] = datetime.now(sc_tz)
@@ -1644,6 +2033,14 @@ def admin_tickets():
     return render_template('admin/tickets.html', tickets=all_tickets if all_tickets else [], pending_tasks=pending_tasks, pending_tasks_count=pending_tasks_count)
 
 
+=======
+            ticket['created_at'] = datetime.now(timezone.utc)
+        elif not isinstance(ticket['created_at'], datetime):
+            ticket['created_at'] = datetime.now(timezone.utc)
+    
+    return render_template('admin/tickets.html', tickets=all_tickets if all_tickets else [], pending_tasks=pending_tasks, pending_tasks_count=pending_tasks_count)
+
+>>>>>>> master
 @app.route('/admin/tickets/close/<ticket_id>', methods=['POST'])
 def close_ticket(ticket_id):
     if 'user_id' not in session or not session.get('is_admin'):
@@ -1654,7 +2051,11 @@ def close_ticket(ticket_id):
             {'_id': ObjectId(ticket_id)},
             {'$set': {
                 'status': 'closed',
+<<<<<<< HEAD
                 'closed_at': datetime.now(sc_tz),
+=======
+                'closed_at': datetime.now(timezone.utc),
+>>>>>>> master
                 'closed_by': session['user_id']
             }}
         )
@@ -1728,7 +2129,11 @@ def update_form_status(form_id):
             {
                 '$set': {
                     'status': status,
+<<<<<<< HEAD
                     'updated_at': datetime.now(sc_tz),
+=======
+                    'updated_at': datetime.now(timezone.utc),
+>>>>>>> master
                     'updated_by': session['user_id']
                 }
             }
@@ -1754,8 +2159,13 @@ def admin_contract_requests():
     contract_requests = list(db.contract_requests.find().sort('created_at', -1))
     for request in contract_requests:
         request['_id'] = str(request['_id'])
+<<<<<<< HEAD
         request['created_at'] = request['created_at'].astimezone(sc_tz)
         request['last_day'] = request['last_day'].astimezone(sc_tz)
+=======
+        request['created_at'] = request['created_at'].astimezone(timezone.utc)
+        request['last_day'] = request['last_day'].astimezone(timezone.utc)
+>>>>>>> master
     
     return render_template('admin/contract_requests.html', contract_requests=contract_requests if contract_requests else [], pending_tasks=pending_tasks, pending_tasks_count=pending_tasks_count)
 
@@ -1776,7 +2186,11 @@ def update_contract_request_status(request_id):
             {
                 '$set': {
                     'status': status,
+<<<<<<< HEAD
                     'updated_at': datetime.now(sc_tz),
+=======
+                    'updated_at': datetime.now(timezone.utc),
+>>>>>>> master
                     'updated_by': session['user_id']
                 }
             }
@@ -1802,7 +2216,11 @@ def accept_contract_request(request_id):
             {'_id': ObjectId(request_id)},
             {'$set': {
                 'status': 'accepted',
+<<<<<<< HEAD
                 'updated_at': datetime.now(sc_tz),
+=======
+                'updated_at': datetime.now(timezone.utc),
+>>>>>>> master
                 'updated_by': session['user_id']
             }}
         )
@@ -1827,7 +2245,11 @@ def decline_contract_request(request_id):
             {'_id': ObjectId(request_id)},
             {'$set': {
                 'status': 'declined',
+<<<<<<< HEAD
                 'updated_at': datetime.now(sc_tz),
+=======
+                'updated_at': datetime.now(timezone.utc),
+>>>>>>> master
                 'updated_by': session['user_id']
             }}
         )
@@ -1845,6 +2267,7 @@ def decline_contract_request(request_id):
 @app.route('/admin/onboarding-requests')
 def admin_onboarding_requests():
     if 'user_id' not in session or not session.get('is_admin'):
+<<<<<<< HEAD
         return redirect(url_for('login.loginf'))
     
     pending_tasks = calculate_pending_tasks()
@@ -1872,10 +2295,24 @@ def admin_room_bookings():
     room_bookings_list = list(room_bookings.find().sort('created_at', -1))
     return render_template('admin/room_bookings.html', room_bookings=room_bookings_list if room_bookings_list else [], pending_tasks=pending_tasks, pending_tasks_count=pending_tasks_count)
 
+=======
+        return redirect(url_for('login'))
+
+    # Get the user's submitted files
+    files = list(request_closing.find({
+        'user_id': session['user_id'],
+        'status': 'submitted'
+    }))
+
+    return render_template('request_review.html', 
+                         uploaded_files=files,
+                         submission_time=datetime.now(timezone.utc).strftime('%B %d, %Y at %I:%M %p'))
+>>>>>>> master
 
 @app.route('/admin/onboarding')
 def admin_onboarding():
     if 'user_id' not in session or not session.get('is_admin'):
+<<<<<<< HEAD
         return redirect(url_for('login.loginf'))
     pending_tasks = calculate_pending_tasks()
     pending_tasks_count = sum(len(tasks) for tasks, _ in pending_tasks)
@@ -1884,10 +2321,46 @@ def admin_onboarding():
         if 'start_date' not in record:
             record['start_date'] = None  # or set a default date if preferred
     return render_template('admin/onboarding.html', records=onboarding_records if onboarding_records else [], pending_tasks=pending_tasks, pending_tasks_count=pending_tasks_count)
+=======
+        return redirect(url_for('login'))
+    
+    # Fetch all onboarding entries
+    onboarding_entries = list(onboarding_collection.find())
+    
+    # Process each entry
+    for entry in onboarding_entries:
+        # Convert ObjectId to string
+        entry['_id'] = str(entry['_id'])
+        
+        # Format dates
+        if 'created_at' in entry:
+            if isinstance(entry['created_at'], str):
+                entry['created_at'] = datetime.strptime(entry['created_at'], '%Y-%m-%dT%H:%M:%S.%f%z')
+            entry['created_at'] = entry['created_at'].strftime('%Y-%m-%d %H:%M:%S')
+            
+        if 'updated_at' in entry:
+            if isinstance(entry['updated_at'], str):
+                entry['updated_at'] = datetime.strptime(entry['updated_at'], '%Y-%m-%dT%H:%M:%S.%f%z')
+            entry['updated_at'] = entry['updated_at'].strftime('%Y-%m-%d %H:%M:%S')
+    
+    # Sort entries by creation date
+    onboarding_entries.sort(key=lambda x: x.get('created_at', ''), reverse=True)
+    
+    pending_tasks = calculate_pending_tasks()
+    pending_tasks_count = sum(len(tasks) for tasks, _ in pending_tasks)
+    
+    return render_template(
+        'admin/onboarding.html',
+        onboarding_entries=onboarding_entries,
+        pending_tasks=pending_tasks,
+        pending_tasks_count=pending_tasks_count
+    )
+>>>>>>> master
 
 @app.route('/admin/closing-requests')
 def admin_closing_requests():
     if 'user_id' not in session or not session.get('is_admin'):
+<<<<<<< HEAD
         return redirect(url_for('login.loginf'))
     
     # Fetch closing requests data from MongoDB
@@ -1904,6 +2377,73 @@ def admin_closing_requests():
     pending_tasks_count = sum(len(tasks) for tasks, _ in pending_tasks)
     return render_template('admin/closing_requests.html', requests=closing_requests_list, pending_tasks=pending_tasks, pending_tasks_count=pending_tasks_count)
 
+=======
+        return redirect(url_for('login'))
+    
+    # Fetch closing requests data from MongoDB without sorting
+    closing_requests_list = list(request_closing.find())
+    
+    # Recursively convert ObjectIds to strings in the entire document
+    closing_requests_list = [convert_objectids(req) for req in closing_requests_list]
+
+    # Ensure each request has the required structure
+    for req in closing_requests_list:
+        # Ensure form_data exists
+        if 'form_data' not in req:
+            req['form_data'] = {}
+        
+        # Ensure document_statuses exists
+        if 'document_statuses' not in req:
+            req['document_statuses'] = {}
+            
+        # Ensure required form fields exist with default values
+        default_fields = {
+            'borrowerName': 'N/A',
+            'propertyAddress': 'N/A',
+            'phoneNumber': 'N/A',
+            'emailAddress': 'N/A',
+            'loName': 'N/A',
+            'loPhone': 'N/A',
+            'loEmail': 'N/A',
+            'processorName': 'N/A',
+            'processorPhone': 'N/A',
+            'processorEmail': 'N/A',
+            'escrowCompany': 'N/A',
+            'escrowContact': 'N/A',
+            'escrowEmail': 'N/A'
+        }
+        
+        for field, default in default_fields.items():
+            if field not in req['form_data']:
+                req['form_data'][field] = default
+
+        # Format last_day if it exists
+        last_day_val = req.get('last_day')
+        if isinstance(last_day_val, str) and last_day_val.startswith('20'):  # Likely a date string
+            try:
+                last_day_dt = datetime.strptime(last_day_val, '%Y-%m-%d')
+                req['last_day'] = last_day_dt.strftime('%Y-%m-%d')
+            except ValueError:
+                req['last_day'] = "N/A"
+        elif isinstance(last_day_val, datetime):
+            req['last_day'] = last_day_val.strftime('%Y-%m-%d')
+        else:
+            req['last_day'] = "N/A"
+            
+        # Ensure status exists
+        if 'status' not in req:
+            req['status'] = 'pending'
+    
+    pending_tasks = calculate_pending_tasks()
+    pending_tasks_count = sum(len(tasks) for tasks, _ in pending_tasks)
+    
+    return render_template(
+        'admin/closing_requests.html', 
+        requests=closing_requests_list, 
+        pending_tasks=pending_tasks, 
+        pending_tasks_count=pending_tasks_count
+    )
+>>>>>>> master
 
 @app.route('/admin/closing-requests/<request_id>/status', methods=['POST'])
 def update_closing_request_status(request_id):
@@ -1912,6 +2452,7 @@ def update_closing_request_status(request_id):
     
     try:
         data = request.get_json()
+<<<<<<< HEAD
         status = data.get('status')
         
         if status not in ['approved', 'rejected']:
@@ -1919,6 +2460,36 @@ def update_closing_request_status(request_id):
         
         result = request_closing.update_one(
             {'_id': ObjectId(request_id)},
+=======
+        if not data:
+            return jsonify({'error': 'No data provided'}), 400
+            
+        status = data.get('status')
+        if not status:
+            return jsonify({'error': 'Status is required'}), 400
+        
+        if status not in ['approved', 'rejected']:
+            return jsonify({'error': 'Invalid status. Must be approved or rejected'}), 400
+        
+        # Validate request ID format
+        try:
+            request_id_obj = ObjectId(request_id)
+        except InvalidId:
+            return jsonify({'error': 'Invalid request ID format'}), 400
+        
+        # Check if request exists
+        closing_request = request_closing.find_one({'_id': request_id_obj})
+        if not closing_request:
+            return jsonify({'error': 'Closing request not found'}), 404
+            
+        # Check if request is already processed
+        if closing_request.get('status') in ['approved', 'rejected']:
+            return jsonify({'error': 'Request has already been processed'}), 400
+        
+        # Update the request
+        result = request_closing.update_one(
+            {'_id': request_id_obj},
+>>>>>>> master
             {
                 '$set': {
                     'status': status,
@@ -1927,6 +2498,7 @@ def update_closing_request_status(request_id):
                 }
             }
         )
+<<<<<<< HEAD
         
         if result.modified_count:
             return jsonify({'success': True}), 200
@@ -1934,6 +2506,30 @@ def update_closing_request_status(request_id):
         
     except InvalidId:
         return jsonify({'error': 'Invalid request ID'}), 400
+=======
+
+        if result.modified_count:
+            # Get updated request for response
+            updated_request = request_closing.find_one({'_id': request_id_obj})
+            if updated_request:
+                # Convert ObjectId to string for JSON response
+                updated_request['_id'] = str(updated_request['_id'])
+                if 'updated_by' in updated_request:
+                    updated_request['updated_by'] = str(updated_request['updated_by'])
+                return jsonify({
+                    'success': True,
+                    'message': f'Request {status} successfully',
+                    'request': updated_request
+                }), 200
+            
+            return jsonify({
+                'success': True,
+                'message': f'Request {status} successfully'
+            }), 200
+            
+        return jsonify({'error': 'Failed to update request'}), 500
+        
+>>>>>>> master
     except Exception as e:
         print(f"Error updating closing request status: {str(e)}")
         return jsonify({'error': 'Internal server error'}), 500
@@ -1947,8 +2543,13 @@ def accept_closing_request(request_id):
         result = request_closing.update_one(
             {'_id': ObjectId(request_id)},
             {'$set': {
+<<<<<<< HEAD
                 'status': 'accepted',
                 'updated_at': datetime.now(sc_tz),
+=======
+                'status': 'approved',
+                'updated_at': datetime.now(timezone.utc),
+>>>>>>> master
                 'updated_by': session['user_id']
             }}
         )
@@ -1972,8 +2573,13 @@ def decline_closing_request(request_id):
         result = request_closing.update_one(
             {'_id': ObjectId(request_id)},
             {'$set': {
+<<<<<<< HEAD
                 'status': 'declined',
                 'updated_at': datetime.now(sc_tz),
+=======
+                'status': 'rejected',
+                'updated_at': datetime.now(timezone.utc),
+>>>>>>> master
                 'updated_by': session['user_id']
             }}
         )
@@ -2062,7 +2668,11 @@ def update_onboarding_request_status(request_id):
             {
                 '$set': {
                     'status': status,
+<<<<<<< HEAD
                     'updated_at': datetime.now(sc_tz),
+=======
+                    'updated_at': datetime.now(timezone.utc),
+>>>>>>> master
                     'updated_by': session['user_id']
                 }
             }
@@ -2099,9 +2709,23 @@ def rejected_onboarding_requests():
     return render_template('admin/rejected_login_requests.html', rejected_requests=rejected_requests, pending_tasks=pending_tasks, pending_tasks_count=pending_tasks_count)
 
 @app.route('/admin/pending-tasks')
+<<<<<<< HEAD
 def get_pending_tasks():
     pending_tasks = calculate_pending_tasks()
     return jsonify(pending_tasks)
+=======
+@login_required
+def get_pending_tasks():
+    if not session.get('is_admin'):
+        return jsonify({'error': 'Unauthorized'}), 401
+        
+    try:
+        pending_tasks = calculate_pending_tasks()
+        return jsonify(pending_tasks)
+    except Exception as e:
+        print(f"Error getting pending tasks: {str(e)}")
+        return jsonify({'error': 'Internal server error'}), 500
+>>>>>>> master
 
 @app.route('/admin/pending-tasks/count')
 def pending_tasks():
@@ -2130,12 +2754,127 @@ def admin_bookings():
     
     return render_template('admin/bookings.html', room_bookings=room_bookings_list, pending_tasks=pending_tasks, pending_tasks_count=pending_tasks_count)
 
+<<<<<<< HEAD
+=======
+@app.route('/admin/room-bookings')
+def admin_room_bookings():
+    if 'user_id' not in session or not session.get('is_admin'):
+        return redirect(url_for('login'))
+    
+    # Fetch all room bookings
+    bookings = list(room_bookings.find())
+    
+    # Process each booking
+    for booking in bookings:
+        # Convert ObjectId to string
+        booking['_id'] = str(booking['_id'])
+        if 'user_id' in booking:
+            booking['user_id'] = str(booking['user_id'])
+        
+        # Format dates
+        if 'created_at' in booking:
+            booking['created_at'] = booking['created_at'].strftime('%Y-%m-%d %H:%M:%S')
+        
+        # Ensure status exists
+        if 'status' not in booking:
+            booking['status'] = 'pending'
+    
+    # Sort bookings by date and time
+    bookings.sort(key=lambda x: (x.get('date', ''), x.get('start_time', '')), reverse=True)
+    
+    pending_tasks = calculate_pending_tasks()
+    pending_tasks_count = sum(len(tasks) for tasks, _ in pending_tasks)
+    
+    return render_template(
+        'admin/room_bookings.html',
+        bookings=bookings,
+        pending_tasks=pending_tasks,
+        pending_tasks_count=pending_tasks_count
+    )
+
+@app.route('/admin/room-bookings/<booking_id>/status', methods=['POST'])
+def update_room_booking_status(booking_id):
+    if 'user_id' not in session or not session.get('is_admin'):
+        return jsonify({'error': 'Unauthorized'}), 401
+    
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({'error': 'No data provided'}), 400
+            
+        status = data.get('status')
+        if not status:
+            return jsonify({'error': 'Status is required'}), 400
+        
+        if status not in ['approved', 'rejected']:
+            return jsonify({'error': 'Invalid status. Must be approved or rejected'}), 400
+        
+        # Validate booking ID format
+        try:
+            booking_id_obj = ObjectId(booking_id)
+        except InvalidId:
+            return jsonify({'error': 'Invalid booking ID format'}), 400
+        
+        # Check if booking exists
+        booking = room_bookings.find_one({'_id': booking_id_obj})
+        if not booking:
+            return jsonify({'error': 'Room booking not found'}), 404
+            
+        # Check if booking is already processed
+        if booking.get('status') in ['approved', 'rejected']:
+            return jsonify({'error': 'Booking has already been processed'}), 400
+        
+        # Update the booking
+        result = room_bookings.update_one(
+            {'_id': booking_id_obj},
+            {
+                '$set': {
+                    'status': status,
+                    'updated_at': datetime.now(timezone.utc),
+                    'updated_by': str(session['user_id'])
+                }
+            }
+        )
+
+        if result.modified_count:
+            # Get updated booking for response
+            updated_booking = room_bookings.find_one({'_id': booking_id_obj})
+            if updated_booking:
+                # Convert ObjectId to string
+                updated_booking['_id'] = str(updated_booking['_id'])
+                if 'user_id' in updated_booking:
+                    updated_booking['user_id'] = str(updated_booking['user_id'])
+                if 'updated_at' in updated_booking:
+                    updated_booking['updated_at'] = updated_booking['updated_at'].strftime('%Y-%m-%d %H:%M:%S')
+                
+                return jsonify({
+                    'success': True,
+                    'message': f'Room booking {status} successfully',
+                    'booking': updated_booking
+                }), 200
+            
+            return jsonify({
+                'success': True,
+                'message': f'Room booking {status} successfully'
+            }), 200
+            
+        return jsonify({'error': 'Failed to update room booking'}), 500
+        
+    except Exception as e:
+        print(f"Error updating room booking status: {str(e)}")
+        return jsonify({'error': 'Internal server error'}), 500
+
+>>>>>>> master
 def list_dropbox_files(path):
     """Fetches the list of files from a specific Dropbox folder"""
     global dbx
     try:
         if dbx is None:
             init_dropbox_client()
+<<<<<<< HEAD
+=======
+        
+>>>>>>> master
         if not dbx:
             return {"error": "Failed to initialize Dropbox client"}
                 
@@ -2156,6 +2895,10 @@ def list_dropbox_folders(path):
     try:
         if dbx is None:
             init_dropbox_client()
+<<<<<<< HEAD
+=======
+        
+>>>>>>> master
         if not dbx:
             return {"error": "Failed to initialize Dropbox client"}
                 
@@ -2253,8 +2996,13 @@ def submit_onboarding():
         # Create submission document
         submission = {
             'user_id': session['user_id'],
+<<<<<<< HEAD
             'user_name': f"{user.get('first_name', '')} {user.get('last_name', '')}",
             'email': user.get('email', ''),
+=======
+            'user_name': f"{user['first_name']} {user['last_name']}",
+            'email': user['email'],
+>>>>>>> master
             'steps': data.get('steps', {}),
             'status': 'completed',
             'submitted_at': datetime.now(timezone.utc),
@@ -2291,6 +3039,298 @@ def submit_onboarding():
         print(f"Error submitting onboarding: {str(e)}")
         return jsonify({'error': str(e)}), 500
 
+<<<<<<< HEAD
+=======
+@app.route('/cda')
+@login_required
+def cda():
+    return render_template('cda.html')
+
+@app.route('/api/cda/submit', methods=['POST'])
+@login_required
+def submit_cda():
+    try:
+        # Get the current user
+        user_id = session.get('user_id')
+        user = employees.find_one({'_id': ObjectId(user_id)})
+        
+        if not user:
+            return jsonify({'success': False, 'message': 'User not found'}), 404
+            
+        # Create CDA submission record
+        cda_data = {
+            'user_id': ObjectId(user_id),
+            'user_email': user.get('email'),
+            'user_name': user.get('name'),
+            'form_completed': True,
+            'status': 'submitted',
+            'created_at': datetime.now(timezone.utc)
+        }
+        
+        # Insert into cda collection
+        result = db.cda.insert_one(cda_data)
+        
+        if result.inserted_id:
+            return jsonify({
+                'success': True,
+                'message': 'CDA form submission recorded successfully'
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'message': 'Failed to record CDA submission'
+            }), 500
+            
+    except Exception as e:
+        print(f"Error in submit_cda: {str(e)}")  # Add logging
+        return jsonify({
+            'success': False,
+            'message': f'An error occurred: {str(e)}'
+        }), 500
+
+@app.route('/api/submit_closing_request', methods=['POST'])
+@login_required
+def submit_closing_request_api():
+    try:
+        if not request.is_json:
+            return jsonify({
+                'success': False,
+                'error': 'Content-Type must be application/json'
+            }), 400
+
+        data = request.get_json()
+        if not data:
+            return jsonify({
+                'success': False,
+                'error': 'No data provided'
+            }), 400
+
+        # Get user information
+        user_id = session.get('user_id')
+        if not user_id:
+            return jsonify({
+                'success': False,
+                'error': 'User not authenticated'
+            }), 401
+
+        employee = employees.find_one({'_id': ObjectId(user_id)})
+        if not employee:
+            return jsonify({
+                'success': False,
+                'error': 'Employee not found'
+            }), 404
+
+        # Extract form data and document statuses
+        form_data = data.get('formData', {})
+        document_statuses = data.get('documentStatuses', {})
+
+        # Validate required fields
+        required_fields = [
+            'borrowerName', 'propertyAddress', 'phoneNumber', 'emailAddress',
+            'loName', 'loPhone', 'loEmail',
+            'processorName', 'processorPhone', 'processorEmail',
+            'escrowCompany', 'escrowContact', 'escrowEmail'
+        ]
+
+        missing_fields = [field for field in required_fields if not form_data.get(field)]
+        if missing_fields:
+            return jsonify({
+                'success': False,
+                'error': f'Missing required fields: {", ".join(missing_fields)}'
+            }), 400
+
+        # Create closing request record
+        closing_request = {
+            'user_id': ObjectId(user_id),
+            'employee_name': employee.get('name'),
+            'form_data': form_data,
+            'document_statuses': document_statuses,
+            'status': 'pending',
+            'created_at': datetime.now(timezone.utc),
+            'updated_at': datetime.now(timezone.utc)
+        }
+
+        # Insert into MongoDB
+        result = request_closing.insert_one(closing_request)
+        
+        if not result.inserted_id:
+            return jsonify({
+                'success': False,
+                'error': 'Failed to save closing request'
+            }), 500
+
+        print(f"Closing request submitted successfully. ID: {result.inserted_id}")
+        return jsonify({
+            'success': True,
+            'message': 'Closing request submitted successfully',
+            'request_id': str(result.inserted_id)
+        })
+
+    except Exception as e:
+        print(f"Error in submit_closing_request: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': f'An unexpected error occurred: {str(e)}'
+        }), 500
+
+@app.route('/admin/login-requests')
+def admin_login_requests():
+    if 'user_id' not in session or not session.get('is_admin'):
+        return redirect(url_for('login'))
+    
+    # Fetch all login requests
+    requests = list(login_requests.find())
+    
+    # Process each request
+    for request in requests:
+        # Convert ObjectId to string
+        request['_id'] = str(request['_id'])
+        if 'user_id' in request:
+            request['user_id'] = str(request['user_id'])
+        
+        # Format dates
+        if 'created_at' in request:
+            request['created_at'] = request['created_at'].strftime('%Y-%m-%d %H:%M:%S')
+        
+        # Ensure status exists
+        if 'status' not in request:
+            request['status'] = 'pending'
+    
+    # Sort requests by creation date
+    requests.sort(key=lambda x: x.get('created_at', ''), reverse=True)
+    
+    pending_tasks = calculate_pending_tasks()
+    pending_tasks_count = sum(len(tasks) for tasks, _ in pending_tasks)
+    
+    return render_template(
+        'admin/login_requests.html',
+        requests=requests,
+        pending_tasks=pending_tasks,
+        pending_tasks_count=pending_tasks_count
+    )
+
+@app.route('/admin/login-requests/<request_id>/status', methods=['POST'])
+def update_login_request_status(request_id):
+    if 'user_id' not in session or not session.get('is_admin'):
+        return jsonify({'error': 'Unauthorized'}), 401
+    
+    try:
+        data = request.get_json()
+        if not data:
+            return jsonify({'error': 'No data provided'}), 400
+            
+        status = data.get('status')
+        if not status:
+            return jsonify({'error': 'Status is required'}), 400
+        
+        if status not in ['approved', 'rejected']:
+            return jsonify({'error': 'Invalid status. Must be approved or rejected'}), 400
+        
+        # Validate request ID format
+        try:
+            request_id_obj = ObjectId(request_id)
+        except InvalidId:
+            return jsonify({'error': 'Invalid request ID format'}), 400
+        
+        # Check if request exists
+        login_request = login_requests.find_one({'_id': request_id_obj})
+        if not login_request:
+            return jsonify({'error': 'Login request not found'}), 404
+            
+        # Check if request is already processed
+        if login_request.get('status') in ['approved', 'rejected']:
+            return jsonify({'error': 'Request has already been processed'}), 400
+        
+        # Update the request
+        result = login_requests.update_one(
+            {'_id': request_id_obj},
+            {
+                '$set': {
+                    'status': status,
+                    'updated_at': datetime.now(timezone.utc),
+                    'updated_by': str(session['user_id'])
+                }
+            }
+        )
+
+        if result.modified_count:
+            # If approved, create user account
+            if status == 'approved':
+                try:
+                    # Hash the default password
+                    default_password = generate_password_hash('Welcome@123')
+                    
+                    # Create user document
+                    user_data = {
+                        'email': login_request['email'],
+                        'password': default_password,
+                        'name': login_request['employee_name'],
+                        'department': login_request.get('department', ''),
+                        'role': login_request.get('role', 'user'),
+                        'created_at': datetime.now(timezone.utc),
+                        'is_active': True,
+                        'is_admin': False
+                    }
+                    
+                    users.insert_one(user_data)
+                    
+                    # Send email with login credentials
+                    send_welcome_email(login_request['email'], login_request['employee_name'])
+                except Exception as e:
+                    print(f"Error creating user account: {str(e)}")
+                    # Don't return error - the status update was successful
+            
+            # Get updated request for response
+            updated_request = login_requests.find_one({'_id': request_id_obj})
+            if updated_request:
+                # Convert ObjectId to string
+                updated_request['_id'] = str(updated_request['_id'])
+                if 'user_id' in updated_request:
+                    updated_request['user_id'] = str(updated_request['user_id'])
+                if 'updated_at' in updated_request:
+                    updated_request['updated_at'] = updated_request['updated_at'].strftime('%Y-%m-%d %H:%M:%S')
+                
+                return jsonify({
+                    'success': True,
+                    'message': f'Login request {status} successfully',
+                    'request': updated_request
+                }), 200
+            
+            return jsonify({
+                'success': True,
+                'message': f'Login request {status} successfully'
+            }), 200
+            
+        return jsonify({'error': 'Failed to update login request'}), 500
+        
+    except Exception as e:
+        print(f"Error updating login request status: {str(e)}")
+        return jsonify({'error': 'Internal server error'}), 500
+
+def send_welcome_email(email, name):
+    """Send welcome email with login credentials"""
+    subject = "Welcome to WCM Dashboard - Your Account Details"
+    body = f"""
+    Dear {name},
+    
+    Your account for the WCM Dashboard has been created. You can now log in using the following credentials:
+    
+    Email: {email}
+    Password: Welcome@123
+    
+    Please change your password after your first login for security purposes.
+    
+    Best regards,
+    WCM Dashboard Team
+    """
+    
+    try:
+        msg = Message(subject, recipients=[email], body=body)
+        mail.send(msg)
+    except Exception as e:
+        print(f"Error sending welcome email: {str(e)}")
+
+>>>>>>> master
 if __name__ == '__main__':
     print("Starting WCM Dashboard application...")
     insert_sample_employees()  # Create sample employees on startup
